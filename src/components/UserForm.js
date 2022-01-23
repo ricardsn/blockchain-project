@@ -15,7 +15,7 @@ class UserForm extends Component {
                     <input type="text" class="form-control" name="name" id="userNameInput" placeholder="Enter name" />
                 </div>
                 <div class="form-group">
-                    <label for="userSurnameInput">User name</label>
+                    <label for="userSurnameInput">User surname</label>
                     <input type="text" class="form-control" name="surname" id="userSurnameInput" placeholder="Enter surname" />
                 </div>
                 <div class="form-group">

@@ -5,11 +5,11 @@ import Navbar from "./Navbar";
 
 class Layout extends Component {
     render() {
-        const { user_id } = this.props;
+        const { user_id, user_type } = this.props;
 
         return (
             <>
-                <Navbar user_id={ user_id } />
+                <Navbar user_id={ user_id } user_type={ user_type } />
     
                 <Outlet />
             </>

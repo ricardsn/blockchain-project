@@ -24,8 +24,8 @@ class SalmonForm extends Component {
                 <div class="form-group">
                     <label for="status">Salmon status</label>
                     <select class="form-control" id="status" name="status">
-                        <option value="0">Alive</option>
-                        <option value="1">Dead</option>
+                        <option value="1">Alive</option>
+                        <option value="0">Dead</option>
                     </select>
                 </div>
                 <div class="form-group">

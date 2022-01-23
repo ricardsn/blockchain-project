@@ -9,11 +9,16 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./Layout";
 import CreateUser from "./CreateUser";
 import RegisterSalmon from "./RegisterSalmon";
+import SalmonPage from "./SalmonPage";
+import LocationPage from "./LocationPage";
+import SalmonListPage from "./SalmonListPage";
 
 class App extends Component {
     containerFunctions = {
         createUser: this.createUser.bind(this),
-        registerSalmon: this.registerSalmon.bind(this)
+        registerSalmon: this.registerSalmon.bind(this),
+        getSalmonData: this.getSalmonData.bind(this),
+        getAllSalmonIds: this.getAllSalmonIds.bind(this)
     };
 
     loadWeb3() {
@@ -33,12 +38,14 @@ class App extends Component {
     }
 
     async loadBlockchainData() {
-        const { user_id } = this.state;
-
         const web3 = window.web3;
         const account = await web3.eth.getAccounts();
         this.setState({ user_id: account[0] });
         const networkId = await web3.eth.net.getId();
+
+        window.ethereum.on('accountsChanged', function (accounts) {
+           window.location.reload(); // Reloading page if metamask accounts are changed
+        })
 
         // Loading contracts
         const tetherData = Tether.networks[networkId];
@@ -57,7 +64,8 @@ class App extends Component {
             const salmonTrack = new web3.eth.Contract(SalmonTrack.abi, salmonTrackData.address);
             this.setState({ salmonTrack });
             let userData = await salmonTrack.methods.getUserNameSurname(account[0]).call();
-            this.setState({ name: userData['name'], surname: userData['surname'] });
+            let userType = await salmonTrack.methods.getUserType(account[0]).call({ from: account[0] });
+            this.setState({ name: userData['name'], surname: userData['surname'], user_type: userType });
         } else {
             window.alert('SalmonTrack contract was not deployed!')
         }
@@ -91,18 +99,46 @@ class App extends Component {
         try {
             salmonTrack.methods
                 .registerSalmon(
-                    data.tracker_id.value, 
-                    'test.com/coordinates', 
+                    data.tracker_id.value,
+                    `${ window.location.origin }/check-location/${ data.tracker_id.value }`,
                     data.weight.value,
                     data.length.value,
-                    'test.com/image_url',
+                    'https://fishing.lv/cope/fly/images3/lasis.jpg',
                     data.status.value,
-                    Math.round(new Date(event.target.catch_time.value)/1000)
+                    Math.round(new Date(event.target.catch_time.value) / 1000)
                 )
                 .send({ from: user_id })
                 .on('transactionHash', (hash) => {
                     alert(`Salmon with tracker ${data.tracker_id.value} was registrated!`);
                 })
+                .catch((err) => {  // Catching errors while contract is being ran
+                    alert(err.message);
+                });
+        } catch (err) { // Catching errors that are caused before contract is ran
+            alert(err.message);
+        }
+    }
+
+    async getAllSalmonIds() {
+        const { salmonTrack, user_id } = this.state;
+
+        try {
+            return await salmonTrack.methods.getSalmonIds().call({ from: user_id })
+                .catch((err) => {  // Catching errors while contract is being ran
+                    alert(err.message);
+                    document.location.href="/";
+                });
+        } catch (err) { // Catching errors that are caused before contract is ran
+            alert(err.message);
+            document.location.href="/";
+        }
+    }
+
+    async getSalmonData(tracker_id) {
+        const { salmonTrack, user_id } = this.state;
+
+        try {
+            return await salmonTrack.methods.getSalmonData(tracker_id).call({ from: user_id })
                 .catch((err) => {  // Catching errors while contract is being ran
                     alert(err.message);
                 });
@@ -121,22 +157,26 @@ class App extends Component {
             tetherBalance: '0',
             isLoading: true,
             name: '',
-            surname: ''
+            surname: '',
+            user_type: 0
         }
     }
 
     render() {
         const { user_id } = this.state;
-        console.log(this.state);
+
         return (
             <>
                 <div>
                     <BrowserRouter>
                         <Routes>
                             <Route path="/" element={<Layout user_id={user_id} {...this.state} />} >
-                                <Route index element={<Homepage { ...this.state }/>} />
-                                <Route path="/create-user" element={<CreateUser { ...this.state } { ...this.containerFunctions }/>} />
-                                <Route path="/register-salmon" element={<RegisterSalmon { ...this.state } { ...this.containerFunctions }/>} />
+                                <Route index element={<Homepage {...this.state} />} />
+                                <Route path="/create-user" element={<CreateUser {...this.state} {...this.containerFunctions} />} />
+                                <Route path="/register-salmon" element={<RegisterSalmon {...this.state} {...this.containerFunctions} />} />
+                                <Route path="/salmon-page/:id" element={<SalmonPage {...this.props} {...this.state} {...this.containerFunctions} />} />
+                                <Route path="/check-location/:id" element={<LocationPage  />} />
+                                <Route path="/salmon-list-page" element={<SalmonListPage {...this.props} {...this.state} {...this.containerFunctions} />} />
                                 <Route
                                     path="*"
                                     element={<Navigate to="/" />}

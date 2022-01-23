@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.7.0 <0.9.0;
-import './Tether.sol';
+import "./Tether.sol";
 
 contract SalmonTrack {
     struct Salmon {
         bytes32 tracker_id;
         string coordinate_url;
-        uint weight;
-        uint length;
+        uint256 weight;
+        uint256 length;
         string image_url;
-        uint status;
-        uint catch_time;
+        uint256 status;
+        uint256 catch_time;
         address catcher_id;
     }
 
@@ -18,14 +18,14 @@ contract SalmonTrack {
         address user_id;
         string name;
         string surname;
-        uint user_type;
+        uint256 user_type;
     }
 
     address public admin;
     Tether public tether;
 
-    mapping( address => User ) public users;
-    mapping( bytes32 => Salmon ) public salmons;
+    mapping(address => User) public users;
+    mapping(bytes32 => Salmon[]) public salmons;
 
     bytes32[] public salmonIds;
 
@@ -39,21 +39,17 @@ contract SalmonTrack {
         users[admin].user_type = 1;
     }
 
-    function addNewUser(address newUserID, string memory name, string memory surname, uint user_type)  public {
+    function addNewUser(
+        address newUserID,
+        string memory name,
+        string memory surname,
+        uint256 user_type
+    ) public {
+        require(msg.sender == admin, "Only admin can add users!");
+        require(users[newUserID].user_id != newUserID, "User already exists!");
+        require(user_type != 1, "Only one admin can exist!");
         require(
-            msg.sender == admin,
-            "Only admin can add users!"
-        );
-        require(
-            users[newUserID].user_id != newUserID,
-            "User already exists!"
-        );
-        require(
-            user_type != 1,
-            "Only one admin can exist!"
-        );
-          require(
-            user_type > 1,
+            user_type > 1 && (user_type == 2 || user_type == 3),
             "Enter valid type_id!"
         );
 
@@ -63,61 +59,106 @@ contract SalmonTrack {
         users[newUserID].user_type = user_type;
     }
 
-    function getUserNameSurname(address user_id) public view returns (string memory name, string memory surname) {        
+    function getUserNameSurname(address user_id)
+        public
+        view
+        returns (string memory name, string memory surname)
+    {
+        require(msg.sender == admin, "Only admin can see user names!");
         name = users[user_id].name;
         surname = users[user_id].surname;
     }
 
-    function getUserType(address user_id) public view returns(uint256 userType) {
+    function getUserType(address user_id)
+        public
+        view
+        returns (uint256 userType)
+    {
         userType = users[user_id].user_type;
     }
 
     function registerSalmon(
         bytes32 tracker_id,
         string memory coordinate_url,
-        uint weight,
-        uint length,
+        uint256 weight,
+        uint256 length,
         string memory image_url,
-        uint status,
-        uint catch_time
-        ) public {
+        uint256 status,
+        uint256 catch_time
+    ) public {
+        if (salmons[tracker_id].length == 0) {
+            require(
+                (users[msg.sender].user_type == 1 ||
+                    users[msg.sender].user_type == 2 ||
+                    users[msg.sender].user_type == 3),
+                "Add first fish data can be managed by admin, scietist or authorized fisherman"
+            );
+        }
+
         require(
-            users[msg.sender].user_type == 1
-            || users[msg.sender].user_type == 2
-            || users[msg.sender].user_type == 3,
-            "Add fish data can be managed by admin, scietist or authorized fisherman"
+            status == 0 || status == 1,
+            "There is only 2 statuses -> Dead or Alive"
         );
 
-        salmons[tracker_id] = Salmon(tracker_id, coordinate_url, weight, length, image_url, status, catch_time, users[msg.sender].user_id);
-        tether.transfer(msg.sender, 1000000); // Getting reward for registrating a fish
+        require(catch_time <= block.timestamp, "Please enter valid date!");
+
+        if (salmons[tracker_id].length != 0) {
+            uint256 arrLength = salmons[tracker_id].length;
+
+            require(
+                salmons[tracker_id][arrLength - 1].length <= length &&
+                    salmons[tracker_id][arrLength - 1].catch_time <= catch_time,
+                "Data is invalid fish can't shrink or be caught in past!"
+            );
+
+            if (salmons[tracker_id][arrLength - 1].status == 0) {
+                require(false, "You cannot change the dead!");
+            }
+        }
+
+        salmons[tracker_id].push(
+            Salmon(
+                tracker_id,
+                coordinate_url,
+                weight,
+                length,
+                image_url,
+                status,
+                catch_time,
+                msg.sender
+            )
+        );
+
+        tether.transfer(msg.sender, 500000000000000); // Getting reward (0.0005 eth) for registrating a fish
+        salmonIds.push(tracker_id);
     }
 
-    function getSalmonData(bytes32 tracker_id) public view returns (
-        string memory coordinate_url,
-        uint weight,
-        uint length,
-        string memory image_url,
-        uint status,
-        uint catch_time,
-        address catcher_id
-    ) {
-        Salmon memory salmon = salmons[tracker_id];
+    function getSalmonData(bytes32 tracker_id)
+        public
+        view
+        returns (Salmon[] memory salmonData)
+    {
         User memory user = users[msg.sender];
 
-        coordinate_url = "undefined";
-        weight = salmon.weight;
-        length = salmon.length;
-        image_url = salmon.image_url;
-        status = salmon.status;
-        catch_time = salmon.catch_time;
-        catcher_id = salmon.catcher_id;
+        require(salmons[tracker_id].length != 0, "No Salmon found!");
 
-        if (user.user_type == 1 || user.user_type == 2) {
-             coordinate_url = salmon.coordinate_url;
+        salmonData = salmons[tracker_id];
+        for (uint256 i = 0; i < salmons[tracker_id].length; i = i + 1) {
+            if (user.user_type != 1 && user.user_type != 2) {
+                salmonData[i].coordinate_url = "undefined";
+            }
         }
     }
 
-    function getBalance(address user_id) public view returns (uint balance) {
+    function getSalmonIds()
+        public
+        view
+        returns (bytes32[] memory salmonIdsArr)
+    {
+        salmonIdsArr = salmonIds;
+    }
+
+    function getBalance(address user_id) public view returns (uint256 balance) {
         balance = tether.balanceOf(user_id);
     }
 }
