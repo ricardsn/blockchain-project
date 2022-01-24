@@ -12,18 +12,18 @@ class LocationPage extends Component {
             tileSize: 512,
             zoomOffset: 0,
             attribution: '© <a href="https://www.mapbox.com/map-feedback/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        }).addTo(map);
+        }).addTo(map); // Adding mapbox layers for map to work
 
         this.getCoordinates();
 
         setTimeout(() => {
             if (this.lat && this.long) {
                 map.setView([this.lat, this.long]);
-                L.marker([this.lat, this.long]).addTo(map)
+                L.marker([this.lat, this.long]).addTo(map) // adding gained coordinates from api and display them on map
                 .bindPopup(`Mock Salmon position [${ this.lat }, ${ this.long }]`)
                 .openPopup();
             }
-        }, 1000);
+        }, 1000); // wait for load
 
     }
 

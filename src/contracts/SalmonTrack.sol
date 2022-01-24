@@ -88,7 +88,7 @@ contract SalmonTrack {
     ) public {
         if (salmons[tracker_id].length == 0) {
             require(
-                (users[msg.sender].user_type == 1 ||
+                (users[msg.sender].user_type == 1 ||  // Checking if user is scientist, admin or authorized fisherman
                     users[msg.sender].user_type == 2 ||
                     users[msg.sender].user_type == 3),
                 "Add first fish data can be managed by admin, scietist or authorized fisherman"
@@ -102,16 +102,16 @@ contract SalmonTrack {
 
         require(catch_time <= block.timestamp, "Please enter valid date!");
 
-        if (salmons[tracker_id].length != 0) {
+        if (salmons[tracker_id].length != 0) { // Checking if Salmon with that tracker_id was registrated before
             uint256 arrLength = salmons[tracker_id].length;
 
             require(
                 salmons[tracker_id][arrLength - 1].length <= length &&
-                    salmons[tracker_id][arrLength - 1].catch_time <= catch_time,
+                    salmons[tracker_id][arrLength - 1].catch_time <= catch_time, // If it was check if inputted new catch_time is not less than before
                 "Data is invalid fish can't shrink or be caught in past!"
             );
 
-            if (salmons[tracker_id][arrLength - 1].status == 0) {
+            if (salmons[tracker_id][arrLength - 1].status == 0) { // If Salmon was marked as dead before, then nothing can be done anymore 
                 require(false, "You cannot change the dead!");
             }
         }
@@ -143,7 +143,7 @@ contract SalmonTrack {
         require(salmons[tracker_id].length != 0, "No Salmon found!");
 
         salmonData = salmons[tracker_id];
-        for (uint256 i = 0; i < salmons[tracker_id].length; i = i + 1) {
+        for (uint256 i = 0; i < salmons[tracker_id].length; i = i + 1) {  // If user is not admin or scientist then do not send url containing location
             if (user.user_type != 1 && user.user_type != 2) {
                 salmonData[i].coordinate_url = "undefined";
             }

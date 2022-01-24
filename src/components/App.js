@@ -79,8 +79,8 @@ class App extends Component {
         try {
             salmonTrack.methods
                 .addNewUser(data.user_id.value, data.name.value, data.surname.value, data.user_type.value)
-                .send({ from: user_id })
-                .on('transactionHash', (hash) => {
+                .send({ from: user_id }) // Adding sender
+                .on('transactionHash', (hash) => { // When success
                     alert(`User ${data.user_id.value} was added!`);
                 })
                 .catch((err) => {  // Catching errors while contract is being ran
@@ -100,15 +100,15 @@ class App extends Component {
             salmonTrack.methods
                 .registerSalmon(
                     data.tracker_id.value,
-                    `${ window.location.origin }/check-location/${ data.tracker_id.value }`,
+                    `${ window.location.origin }/check-location/${ data.tracker_id.value }`, // Getting location_url
                     data.weight.value,
                     data.length.value,
-                    'https://fishing.lv/cope/fly/images3/lasis.jpg',
+                    'https://fishing.lv/cope/fly/images3/lasis.jpg', // Hardcoded image, since in this prototype we dont have external media provider
                     data.status.value,
                     Math.round(new Date(event.target.catch_time.value) / 1000)
                 )
-                .send({ from: user_id })
-                .on('transactionHash', (hash) => {
+                .send({ from: user_id }) // adding sender
+                .on('transactionHash', (hash) => {  // on success
                     alert(`Salmon with tracker ${data.tracker_id.value} was registrated!`);
                 })
                 .catch((err) => {  // Catching errors while contract is being ran

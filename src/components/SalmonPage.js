@@ -24,9 +24,9 @@ class SalmonPage extends Component {
         const { salmonTrack } = this.props;
         const { salmonData } = this.state;
 
-        if (Object.keys(salmonTrack).length !== 0 && salmonData.length === 0) {
+        if (Object.keys(salmonTrack).length !== 0 && salmonData.length === 0) { // Checking if contract is loaded
             const salmonDataPromise = this.props.getSalmonData(this.tracker_id);
-            this.getDataSalmon(salmonDataPromise);
+            this.getDataSalmon(salmonDataPromise); // Getting salmon data
         }
     }
 
@@ -45,14 +45,15 @@ class SalmonPage extends Component {
 
         this.setState({ isShow: !isShow });
     }
-
+    
+    // Rendering history of Salmon
     renderCard() {
         const { salmonData } = this.state;
 
         return (
             <>
                 {
-                    salmonData.map(
+                    salmonData.map( // Looping through all history data
                         (item, index) => {
                             return ( <SalmonCard salmonData={ item } index={ index } /> );
                         }
@@ -65,7 +66,7 @@ class SalmonPage extends Component {
     render() {
         const { salmonData, isShow } = this.state;
 
-        if (salmonData === undefined) {
+        if (salmonData === undefined) {  // Return user if salmon doesn't exist
             document.location.href="/";
         }
 

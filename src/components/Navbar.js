@@ -1,11 +1,10 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom'
-import { ADMIN_TYPE, FISHERMAN_TYPE, SCIENTIST_TYPE } from './configs';
+import { ADMIN_TYPE } from './configs';
 
 class Navbar extends Component {
     render() {
         const { user_id, user_type } = this.props;
-        console.log(this.props);
 
         return (
             <nav className='navbar navbar-dark fixed-top shadow p-0' style={{ backgroundColor: 'black', position: 'relative' }}>

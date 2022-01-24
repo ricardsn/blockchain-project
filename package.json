@@ -1,7 +1,7 @@
 {
   "name": "defi-tutorial",
   "version": "0.1.0",
-  "description": "DeFi Token Staking App",
+  "description": "Salmon tracking dApp",
   "author": "c-money",
   "dependencies": {
     "@types/jest": "^26.0.24",
