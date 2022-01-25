@@ -9,7 +9,7 @@ contract SalmonTrack {
         uint256 weight;
         uint256 length;
         string image_url;
-        uint256 status;
+        uint8 status;
         uint256 catch_time;
         address catcher_id;
     }
@@ -83,7 +83,7 @@ contract SalmonTrack {
         uint256 weight,
         uint256 length,
         string memory image_url,
-        uint256 status,
+        uint8 status,
         uint256 catch_time
     ) public {
         if (salmons[tracker_id].length == 0) {
@@ -97,7 +97,7 @@ contract SalmonTrack {
 
         require(
             status == 0 || status == 1,
-            "There is only 2 statuses -> Dead or Alive"
+            "There are only 2 statuses -> Dead or Alive"
         );
 
         require(catch_time <= block.timestamp, "Please enter valid date!");
@@ -143,7 +143,7 @@ contract SalmonTrack {
         require(salmons[tracker_id].length != 0, "No Salmon found!");
 
         salmonData = salmons[tracker_id];
-        for (uint256 i = 0; i < salmons[tracker_id].length; i = i + 1) {  // If user is not admin or scientist then do not send url containing location
+        for (uint i = 0; i < salmons[tracker_id].length; i = i + 1) {  // If user is not admin or scientist then do not send url containing location
             if (user.user_type != 1 && user.user_type != 2) {
                 salmonData[i].coordinate_url = "undefined";
             }
